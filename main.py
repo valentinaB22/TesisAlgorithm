@@ -1,72 +1,26 @@
 from __future__ import division
-from numbers import Number
-from matplotlib import style
-from stl import mesh
-from matplotlib.lines import Line2D
 from matplotlib import collections  as mc
+from branch import Branch
+from leaf import Leaf
 import numpy as np
-import random
 import math
 import matplotlib.pyplot as plt
-import plotly.graph_objects as go
-import plotly.express as px
-import copy
-import time
 
 #####################################PARAMETROS
-#width=200
-#height=200
 maxdis = 40
 mindis = 2
 angulo_min = 0.0
 angulo_max = 90.0
 
-#####################################CLASE LEAF
-class Leaf:
-  reached=False
-
-  def __init__(self, x,y):
-    self.pos = np.array([x,y])
-    self.reached = False
-
-  def reachedM(self):
-    self.reached = True
-
 #####################################ARCHIVO CON PUNTOS
 puntos = np.array([])
 f = open ("ejemplo2.txt", "r")
-#a= Leaf(10,10)
 for i in f:
   x = i.split(",")[0]
   y = i.split(",")[1]
   puntos=np.append(puntos, Leaf(float(x),float(y)))
-#puntos = puntos[:10]
+puntos = puntos[:10]
 print(len(puntos))
-
-#####################################CLASE BRANCH
-class Branch:
-  count = 0
-  parent=None
-  pos=None
-  dir=None
-  origDir=None
-  def __init__(self, parent, pos, dir):
-    self.pos = pos
-    self.parent = parent
-    self.dir = dir
-    self.origDir = self.dir#.copy()
-    self.count = 0
-    self.len = 2 #####################LONGITUD DE LA RAMA
-
-  def reset(self):
-      self.dir = self.origDir#.copy()
-      self.count = 0
-
-  def next(self):
-    nextDir = self.dir * self.len
-    nextPos = np.add(self.pos, nextDir)
-    nextBranch = Branch(self, nextPos, self.dir)#.copy())
-    return nextBranch
 
 #####################################CLASE TREE
 class Tree:

@@ -7,10 +7,9 @@ import math
 import matplotlib.pyplot as plt
 
 #####################################PARAMETROS
-maxdis = 40
-mindis = 2
-angulo_min = 0.0
-angulo_max = 90.0
+maxdis = 10
+mindis = 1
+angulo = 90.0
 
 #####################################ARCHIVO CON PUNTOS
 puntos = np.array([])
@@ -28,8 +27,8 @@ class Tree:
   branches = []
   def __init__(self):
     self.leaves = puntos.tolist()
-    pos = np.array([50,0])
-    dir = np.array([0, -1])
+    pos = np.array([3,3])
+    dir = np.array([1, 1])
     root = Branch(None, pos, dir)
     self.branches.append(root)
     current = root
@@ -62,8 +61,12 @@ class Tree:
               closestBranch = None
               break
             elif d < record:
-              grado = math.degrees(math.atan2(leaf.pos[1]-branch.pos[1],leaf.pos[0]-branch.pos[0])) % 360
-              if((grado > angulo_min) & (grado < angulo_max)):
+              f = branch.dir / np.linalg.norm(branch.dir)
+              o = (leaf.pos - branch.pos) / np.linalg.norm(leaf.pos - branch.pos)
+              c = np.array([f]).dot(o)
+              rad = math.acos(float(round(c[0], 6)))
+              grado = rad * (180 / math.pi)
+              if (grado < angulo):
                 closestBranch = branch
                 record = d
         if closestBranch != None:

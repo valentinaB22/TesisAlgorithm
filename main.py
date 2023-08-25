@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 
 #####################################PARAMETROS
 maxdis = 10
-mindis = 1
-angulo = 90.0
+mindis = 2
+angulo = 45.0
 
 #####################################ARCHIVO CON PUNTOS
 puntos = np.array([])
@@ -18,8 +18,8 @@ for i in f:
   x = i.split(",")[0]
   y = i.split(",")[1]
   puntos=np.append(puntos, Leaf(float(x),float(y)))
-puntos = puntos[:10]
-print(len(puntos))
+puntos = puntos[:800]
+#print(len(puntos))
 
 #####################################CLASE TREE
 class Tree:
@@ -27,7 +27,7 @@ class Tree:
   branches = []
   def __init__(self):
     self.leaves = puntos.tolist()
-    pos = np.array([3,3])
+    pos = np.array([50,0])
     dir = np.array([1, 1])
     root = Branch(None, pos, dir)
     self.branches.append(root)
@@ -44,7 +44,7 @@ class Tree:
         self.branches.append(current);
 
   def grow(self):
-    iter = 50
+    iter = 20
     while iter > 0:
       print("iter:", iter, " - leaves: ",len(self.leaves)," - branches: ",len(self.branches))
       iter = iter-1
@@ -55,7 +55,6 @@ class Tree:
           record = maxdis**2
           for branch in self.branches:
             d = (leaf.pos-branch.pos)[0]**2 + (leaf.pos-branch.pos)[1]**2
-            #d = np.linalg.norm(leaf.pos-branch.pos);
             if d < mindis**2:
               leaf.reachedM()
               closestBranch = None
@@ -65,7 +64,7 @@ class Tree:
               o = (leaf.pos - branch.pos) / np.linalg.norm(leaf.pos - branch.pos)
               c = np.array([f]).dot(o)
               rad = math.acos(float(round(c[0], 6)))
-              grado = rad * (180 / math.pi)
+              grado = rad * (360 / math.pi)
               if (grado < angulo):
                 closestBranch = branch
                 record = d

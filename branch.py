@@ -12,7 +12,7 @@ class Branch:
     self.dir = dir
     self.origDir = self.dir#.copy()
     self.count = 0
-    self.len = 0.5 #####################LONGITUD DE LA RAMA
+    self.len = 2 #####################LONGITUD DE LA RAMA
 
   def reset(self):
       self.dir = self.origDir#.copy()

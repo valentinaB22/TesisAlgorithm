@@ -5,11 +5,12 @@ from leaf import Leaf
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+import time
 
 #####################################PARAMETROS
-maxdis = 10
+maxdis = 20
 mindis = 2
-angulo = 45.0
+angulo = 90.0
 
 #####################################ARCHIVO CON PUNTOS
 puntos = np.array([])
@@ -18,7 +19,7 @@ for i in f:
   x = i.split(",")[0]
   y = i.split(",")[1]
   puntos=np.append(puntos, Leaf(float(x),float(y)))
-puntos = puntos[:800]
+#puntos = puntos[:800]
 #print(len(puntos))
 
 #####################################CLASE TREE
@@ -27,8 +28,8 @@ class Tree:
   branches = []
   def __init__(self):
     self.leaves = puntos.tolist()
-    pos = np.array([50,0])
-    dir = np.array([1, 1])
+    pos = np.array([50,40])
+    dir = np.array([0, 1])
     root = Branch(None, pos, dir)
     self.branches.append(root)
     current = root
@@ -44,10 +45,14 @@ class Tree:
         self.branches.append(current);
 
   def grow(self):
-    iter = 20
-    while iter > 0:
+    iter = 0
+    numBranchAnterior = 0
+    numLeafAnterior = 0
+    while iter < 100:
+      numBranchAnterior = len(self.branches)
+      numLeafAnterior = len(self.leaves)
       print("iter:", iter, " - leaves: ",len(self.leaves)," - branches: ",len(self.branches))
-      iter = iter-1
+      iter = iter+1
       for i in range(len(self.leaves)):
         if(self.leaves[i].reached == False):
           leaf = self.leaves[i]
@@ -82,6 +87,8 @@ class Tree:
           sig_rama=self.branches[i].next()
           self.branches.append(sig_rama)
           self.branches[i].reset()
+      if (numLeafAnterior == len(self.leaves)) & (numBranchAnterior == len(self.branches)):
+        break
 
   def show(self):
     fx =np.array([])
@@ -113,5 +120,8 @@ class Tree:
 
 #####################################GROW + SHOW
 tree = Tree()
+start = time.time()
 tree.grow()
+end = time.time()
+print("tiempo del grow: ", end - start)
 tree.show()

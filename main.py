@@ -9,8 +9,9 @@ import time
 
 #####################################PARAMETROS
 maxdis = 20
-mindis = 2
+mindis = 5
 angulo = 90.0
+grosor_dibujo = 10.0
 
 #####################################ARCHIVO CON PUNTOS
 puntos = np.array([])
@@ -19,7 +20,7 @@ for i in f:
   x = i.split(",")[0]
   y = i.split(",")[1]
   puntos=np.append(puntos, Leaf(float(x),float(y)))
-#puntos = puntos[:800]
+puntos = puntos[:800]
 #print(len(puntos))
 
 #####################################CLASE TREE
@@ -28,7 +29,7 @@ class Tree:
   branches = []
   def __init__(self):
     self.leaves = puntos.tolist()
-    pos = np.array([50,40])
+    pos = np.array([50,0])
     dir = np.array([0, 1])
     root = Branch(None, pos, dir)
     self.branches.append(root)
@@ -46,8 +47,6 @@ class Tree:
 
   def grow(self):
     iter = 0
-    numBranchAnterior = 0
-    numLeafAnterior = 0
     while iter < 100:
       numBranchAnterior = len(self.branches)
       numLeafAnterior = len(self.leaves)
@@ -102,16 +101,20 @@ class Tree:
     x2 =np.array([])
     y2 =np.array([])
     lines = []
+    grosores = []
     for i in range(1,len(self.branches)):
       if self.branches[i].parent != None:
         p = [(self.branches[i].pos[0], self.branches[i].pos[1]), (self.branches[i].parent.pos[0], self.branches[i].parent.pos[1])]
         lines.append(p)
+        grosores.append( grosor_dibujo / self.branches[i].get_depth())
         x1=np.append(x1,self.branches[i].pos[0])
         y1=np.append(y1,self.branches[i].pos[1])
         x1=np.append(x1,self.branches[i].parent.pos[0])
         y1=np.append(y1,self.branches[i].parent.pos[1])
     plt.scatter(x1, y1)
-    lc = mc.LineCollection(lines, colors='red', linewidths=1)
+
+
+    lc = mc.LineCollection(lines, colors='red', linewidths=grosores)
     ax.add_collection(lc)
     plt.grid(True)
     plt.tight_layout()

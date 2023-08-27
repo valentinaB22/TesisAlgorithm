@@ -6,13 +6,20 @@ class Branch:
   pos=None
   dir=None
   origDir=None
+  depth = 1
+
   def __init__(self, parent, pos, dir):
     self.pos = pos
     self.parent = parent
     self.dir = dir
     self.origDir = self.dir#.copy()
     self.count = 0
-    self.len = 2 #####################LONGITUD DE LA RAMA
+    self.len = 5 #####################LONGITUD DE LA RAMA
+    if parent:
+      self.depth= parent.get_depth()+1
+
+  def get_depth(self):
+    return self.depth
 
   def reset(self):
       self.dir = self.origDir#.copy()

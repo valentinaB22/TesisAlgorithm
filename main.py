@@ -10,7 +10,8 @@ import time
 #####################################PARAMETROS
 maxdis = 20
 mindis = 5
-angulo = 90.0
+apertura_max = 180.0
+apertura_min = 100.0
 grosor_dibujo = 10.0
 
 #####################################ARCHIVO CON PUNTOS
@@ -56,6 +57,7 @@ class Tree:
         if(self.leaves[i].reached == False):
           leaf = self.leaves[i]
           closestBranch = None
+          gradoClosestBranch = None
           record = maxdis**2
           for branch in self.branches:
             d = (leaf.pos-branch.pos)[0]**2 + (leaf.pos-branch.pos)[1]**2
@@ -69,14 +71,16 @@ class Tree:
               c = np.array([f]).dot(o)
               rad = math.acos(float(round(c[0], 6)))
               grado = rad * (360 / math.pi)
-              if (grado < angulo):
+              if ((grado < apertura_max) & (grado >= apertura_min)):
                 closestBranch = branch
+                gradoClosestBranch = grado
                 record = d
         if closestBranch != None:
           newDir = np.subtract(leaf.pos, closestBranch.pos)
           newDir = newDir / np.linalg.norm(newDir)
           closestBranch.dir   = np.add(closestBranch.dir,newDir)
           closestBranch.count = closestBranch.count+1
+          print("leaf: ",leaf.pos, "ClosestBranch: ",closestBranch.pos , "dir :", closestBranch.dir ,"Grado: ", gradoClosestBranch )
       for i in range(len(self.leaves)-1,-1,-1):
         if self.leaves[i].reached:
           self.leaves.pop(i)

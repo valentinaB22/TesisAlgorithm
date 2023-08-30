@@ -8,11 +8,17 @@ import matplotlib.pyplot as plt
 import time
 
 #####################################PARAMETROS
+cont=0
 maxdis = 20
 mindis = 5
-apertura_max = 180.0
-apertura_min = 100.0
+apertura_max = 10.0
+apertura_min = 10.0
 grosor_dibujo = 10.0
+delta= 5 #coeficiente de variacion de apertura
+cant_puntos_inicial = 1000
+sigma = 0.01 # coeficiente de convergencia
+porcentaje_ocupacion= 90.0 #el arbol va a crecer hasta ese porcentaje de ocupacion, dependiendo las leaves qe queden.
+cant_converger =3 #cant de iteraciones iguales para llegar a la convergencia
 
 #####################################ARCHIVO CON PUNTOS
 puntos = np.array([])
@@ -21,11 +27,12 @@ for i in f:
   x = i.split(",")[0]
   y = i.split(",")[1]
   puntos=np.append(puntos, Leaf(float(x),float(y)))
-puntos = puntos[:800]
-#print(len(puntos))
+puntos = puntos[:cant_puntos_inicial]
+print(len(puntos))
 
 #####################################CLASE TREE
 class Tree:
+  cont =0
   leaves = []
   branches = []
   def __init__(self):
@@ -46,18 +53,34 @@ class Tree:
         current = branch
         self.branches.append(current);
 
+  def fun_apertura(self,branch):
+    aper = apertura_max - (delta * branch.get_depth())
+    if (aper < apertura_min ):
+      return apertura_min
+    else:
+      return aper
+
+  def converge (self, ocupacion_actual,ocupacion_anterior):
+    if ((ocupacion_actual-ocupacion_anterior) <= sigma):
+      self.cont = self.cont +1
+      if(self.cont > cant_converger):
+        return True
+    else:
+      self.cont =0
+      return False
+    return False
+
   def grow(self):
     iter = 0
-    while iter < 100:
-      numBranchAnterior = len(self.branches)
-      numLeafAnterior = len(self.leaves)
-      print("iter:", iter, " - leaves: ",len(self.leaves)," - branches: ",len(self.branches))
+    ocupacion_actual=0
+    while ocupacion_actual < porcentaje_ocupacion:
+      ocupacion_anterior = ocupacion_actual
+      print("iter:", iter, " - leaves: ",len(self.leaves)," - branches: ",len(self.branches)," - porcentaje_ocupacion: ", ocupacion_actual)
       iter = iter+1
       for i in range(len(self.leaves)):
         if(self.leaves[i].reached == False):
           leaf = self.leaves[i]
           closestBranch = None
-          gradoClosestBranch = None
           record = maxdis**2
           for branch in self.branches:
             d = (leaf.pos-branch.pos)[0]**2 + (leaf.pos-branch.pos)[1]**2
@@ -67,30 +90,32 @@ class Tree:
               break
             elif d < record:
               f = branch.dir / np.linalg.norm(branch.dir)
-              o = (leaf.pos - branch.pos) / np.linalg.norm(leaf.pos - branch.pos)
+              resta=np.subtract(leaf.pos, branch.pos)
+              o = resta / np.linalg.norm(resta)
               c = np.array([f]).dot(o)
               rad = math.acos(float(round(c[0], 6)))
-              grado = rad * (360 / math.pi)
-              if ((grado < apertura_max) & (grado >= apertura_min)):
+              grado = math.degrees(rad)
+              aper = self.fun_apertura(branch)
+              if (grado < aper):
                 closestBranch = branch
-                gradoClosestBranch = grado
                 record = d
         if closestBranch != None:
           newDir = np.subtract(leaf.pos, closestBranch.pos)
           newDir = newDir / np.linalg.norm(newDir)
           closestBranch.dir   = np.add(closestBranch.dir,newDir)
           closestBranch.count = closestBranch.count+1
-          print("leaf: ",leaf.pos, "ClosestBranch: ",closestBranch.pos , "dir :", closestBranch.dir ,"Grado: ", gradoClosestBranch )
       for i in range(len(self.leaves)-1,-1,-1):
         if self.leaves[i].reached:
           self.leaves.pop(i)
+      cant_leaves_ocupadas= cant_puntos_inicial - len(self.leaves)
+      ocupacion_actual = (cant_leaves_ocupadas*100)/cant_puntos_inicial
       for i in range(len(self.branches)):
         if self.branches[i].count > 0:
           self.branches[i].dir = self.branches[i].dir/(self.branches[i].count+1)
           sig_rama=self.branches[i].next()
           self.branches.append(sig_rama)
           self.branches[i].reset()
-      if (numLeafAnterior == len(self.leaves)) & (numBranchAnterior == len(self.branches)):
+      if(self.converge(ocupacion_actual,ocupacion_anterior)):
         break
 
   def show(self):

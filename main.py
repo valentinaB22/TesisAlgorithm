@@ -11,13 +11,13 @@ import time
 cont=0
 maxdis = 20
 mindis = 5
-apertura_max = 10.0
+apertura_max = 90.0
 apertura_min = 10.0
 grosor_dibujo = 10.0
 delta= 5 #coeficiente de variacion de apertura
 cant_puntos_inicial = 1000
 sigma = 0.01 # coeficiente de convergencia
-porcentaje_ocupacion= 90.0 #el arbol va a crecer hasta ese porcentaje de ocupacion, dependiendo las leaves qe queden.
+porcentaje_ocupacion= 100.0 #el arbol va a crecer hasta ese porcentaje de ocupacion, dependiendo las leaves qe queden.
 cant_converger =3 #cant de iteraciones iguales para llegar a la convergencia
 
 #####################################ARCHIVO CON PUNTOS
@@ -32,7 +32,7 @@ print(len(puntos))
 
 #####################################CLASE TREE
 class Tree:
-  cont =0
+  #cont =0
   leaves = []
   branches = []
   def __init__(self):
@@ -56,6 +56,13 @@ class Tree:
   def fun_apertura(self,branch):
     aper = apertura_max - (delta * branch.get_depth())
     if (aper < apertura_min ):
+      return apertura_min
+    else:
+      return aper
+
+  def fun_apertura_automatico(self,branch,ocupacion_actual):
+    aper = apertura_max - (ocupacion_actual/100) * apertura_max
+    if (aper < apertura_min):
       return apertura_min
     else:
       return aper
@@ -95,6 +102,7 @@ class Tree:
               c = np.array([f]).dot(o)
               rad = math.acos(float(round(c[0], 6)))
               grado = math.degrees(rad)
+              #aper= self.fun_apertura_automatico(branch, ocupacion_actual)
               aper = self.fun_apertura(branch)
               if (grado < aper):
                 closestBranch = branch

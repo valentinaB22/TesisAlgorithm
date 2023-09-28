@@ -2,15 +2,19 @@ from __future__ import division
 from matplotlib import collections  as mc
 from branch import Branch
 from leaf import Leaf
+import matplotlib.patches as patches
 import numpy as np
 import math
 import matplotlib.pyplot as plt
 import time
+import xml.etree.ElementTree as ET
+from shapely.geometry import Polygon, Point
+import re
 
 #####################################PARAMETROS
 cont=0
-maxdis = 20
-mindis = 5
+maxdis = 50
+mindis = 2
 apertura_max = 90.0
 apertura_min = 10.0
 grosor_dibujo = 10.0
@@ -19,30 +23,40 @@ cant_puntos_inicial = 1000
 sigma = 0.01 # coeficiente de convergencia
 porcentaje_ocupacion= 100.0 #el arbol va a crecer hasta ese porcentaje de ocupacion, dependiendo las leaves qe queden.
 cant_converger =3 #cant de iteraciones iguales para llegar a la convergencia
+svg_utilizado = "leaf.svg"
 
 #####################################ARCHIVO CON PUNTOS
 puntos = np.array([])
-f = open ("ejemplo2.txt", "r")
+f = open ("file.txt", "r")
 for i in f:
   x = i.split(",")[0]
   y = i.split(",")[1]
   puntos=np.append(puntos, Leaf(float(x),float(y)))
 puntos = puntos[:cant_puntos_inicial]
 print(len(puntos))
-
+#pos_global =puntos[1].pos
+pos_global = np.array([40,122])
+#dir_global = np.array([460,100])
+#dir_global = puntos[250].pos
 #####################################CLASE TREE
 class Tree:
-  #cont =0
+  cont =0
   leaves = []
   branches = []
+  contour = None
   def __init__(self):
     self.leaves = puntos.tolist()
-    pos = np.array([50,0])
-    dir = np.array([0, 1])
+    pos = pos_global
+    #dir = dir_global
+    dir = np.array([0, -1])
     root = Branch(None, pos, dir)
     self.branches.append(root)
     current = root
     found = False
+    #extrae el path
+    svg_path = self.parse_svg(svg_utilizado)
+    #extrae el contorno a la imagen svg
+    self.contour = self.extract_contour(svg_path)
     while not found:
       for i in range(len(self.leaves)):
         d = (current.pos-self.leaves[i].pos)[0]**2 + (current.pos-self.leaves[i].pos)[1]**2
@@ -110,7 +124,7 @@ class Tree:
         if closestBranch != None:
           newDir = np.subtract(leaf.pos, closestBranch.pos)
           newDir = newDir / np.linalg.norm(newDir)
-          closestBranch.dir   = np.add(closestBranch.dir,newDir)
+          closestBranch.dir= np.add(closestBranch.dir,newDir)
           closestBranch.count = closestBranch.count+1
       for i in range(len(self.leaves)-1,-1,-1):
         if self.leaves[i].reached:
@@ -120,43 +134,71 @@ class Tree:
       for i in range(len(self.branches)):
         if self.branches[i].count > 0:
           self.branches[i].dir = self.branches[i].dir/(self.branches[i].count+1)
-          sig_rama=self.branches[i].next()
-          self.branches.append(sig_rama)
-          self.branches[i].reset()
+          #para saber si esta dentro del contorno
+          if self.dentro_contorno(np.add(self.branches[i].dir*self.branches[i].len, self.branches[i].pos)):
+            sig_rama=self.branches[i].next()
+            self.branches.append(sig_rama)
+            self.branches[i].reset()
       if(self.converge(ocupacion_actual,ocupacion_anterior)):
         break
 
   def show(self):
-    fx =np.array([])
-    fy =np.array([])
+    fx = np.array([])
+    fy = np.array([])
     for i in range(len(self.leaves)):
-      fx=np.append(fx,self.leaves[i].pos[0])
-      fy=np.append(fy,self.leaves[i].pos[1])
+      fx = np.append(fx, self.leaves[i].pos[0])
+      fy = np.append(fy, self.leaves[i].pos[1])
     fig, ax = plt.subplots()
-    x1 =np.array([])
-    y1 =np.array([])
-    x2 =np.array([])
-    y2 =np.array([])
+    x1 = np.array([])
+    y1 = np.array([])
+    x2 = np.array([])
+    y2 = np.array([])
     lines = []
     grosores = []
-    for i in range(1,len(self.branches)):
-      if self.branches[i].parent != None:
-        p = [(self.branches[i].pos[0], self.branches[i].pos[1]), (self.branches[i].parent.pos[0], self.branches[i].parent.pos[1])]
+    # Create a Polygon patch for the shadow
+    shadow_polygon = patches.Polygon(self.contour, closed=True, edgecolor='none', facecolor='#000000',alpha=0.10)
+    # Add the shadow polygon to the plot
+    ax.add_patch(shadow_polygon)
+    for i in range(1, len(self.branches)):
+      if self.branches[i].parent is not None:
+        p = [(self.branches[i].pos[0], self.branches[i].pos[1]),
+             (self.branches[i].parent.pos[0], self.branches[i].parent.pos[1])]
         lines.append(p)
-        grosores.append( grosor_dibujo / self.branches[i].get_depth())
-        x1=np.append(x1,self.branches[i].pos[0])
-        y1=np.append(y1,self.branches[i].pos[1])
-        x1=np.append(x1,self.branches[i].parent.pos[0])
-        y1=np.append(y1,self.branches[i].parent.pos[1])
-    plt.scatter(x1, y1)
-
-
-    lc = mc.LineCollection(lines, colors='red', linewidths=grosores)
+        grosores.append(grosor_dibujo / self.branches[i].get_depth())
+        x1 = np.append(x1, self.branches[i].pos[0])
+        y1 = np.append(y1, self.branches[i].pos[1])
+        x1 = np.append(x1, self.branches[i].parent.pos[0])
+        y1 = np.append(y1, self.branches[i].parent.pos[1])
+    plt.scatter(x1, y1, color='black', s=0.2)
+    lc = mc.LineCollection(lines, colors='#900040', linewidths=grosores, alpha=0.7)
     ax.add_collection(lc)
-    plt.grid(True)
+    ax.set_axis_off()
     plt.tight_layout()
-    plt.scatter(fx,fy)
     plt.show()
+
+  #extrae el path
+  def parse_svg(self,svg_file):
+      tree = ET.parse(svg_file)
+      root = tree.getroot()
+      # Assuming the first path element in the SVG represents the contour
+      path_data = root.find(".//{http://www.w3.org/2000/svg}path").get("d")
+      return path_data
+
+  # Step 2: Extract contour coordinates from the SVG path
+  def extract_contour(self,svg_path):
+      # Extract all numeric values from the path data using regular expressions
+      coordinates = [float(coord) for coord in re.findall(r'-?\d+\.\d+', svg_path)]
+      # Separate x and y coordinates
+      x_coords = coordinates[::2]
+      y_coords = coordinates[1::2]
+      # Create a list of tuples for the coordinates
+      contour_coords = list(zip(x_coords, y_coords))
+      return contour_coords
+
+  def dentro_contorno(self, branch):
+    contour_polygon = Polygon(self.contour)
+    point = Point(branch[0],branch[1])
+    return contour_polygon.contains(point)
 
 #####################################GROW + SHOW
 tree = Tree()

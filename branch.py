@@ -14,7 +14,7 @@ class Branch:
     self.dir = dir
     self.origDir = self.dir#.copy()
     self.count = 0
-    self.len = 5 #####################LONGITUD DE LA RAMA
+    self.len = 2 #####################LONGITUD DE LA RAMA
     if parent:
       self.depth= parent.get_depth()+1
 
@@ -28,5 +28,5 @@ class Branch:
   def next(self):
     nextDir = self.dir * self.len
     nextPos = np.add(self.pos, nextDir)
-    nextBranch = Branch(self, nextPos, self.dir)#.copy())
+    nextBranch = Branch(self, nextPos, self.dir)
     return nextBranch

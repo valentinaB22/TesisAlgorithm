@@ -10,16 +10,16 @@ class Branch:
     self.pos = pos
     self.parent = parent
     self.dir = dir
-    self.origDir = self.dir#.copy()
+    self.origDir = self.dir
     self.count = 0
     self.len = 2 #####################LONGITUD DE LA RAMA
 
   def reset(self):
-      self.dir = self.origDir#.copy()
+      self.dir = self.origDir
       self.count = 0
 
   def next(self):
     nextDir = self.dir * self.len
     nextPos = np.add(self.pos, nextDir)
-    nextBranch = Branch(self, nextPos, self.dir)#.copy())
+    nextBranch = Branch(self, nextPos, self.dir)
     return nextBranch

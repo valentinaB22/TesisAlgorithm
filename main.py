@@ -3,14 +3,11 @@ from matplotlib import collections  as mc
 from branch import Branch
 from leaf import Leaf
 import numpy as np
-import math
 import matplotlib.pyplot as plt
 
 #####################################PARAMETROS
-maxdis = 40
+maxdis = 100
 mindis = 2
-angulo_min = 0.0
-angulo_max = 90.0
 
 #####################################ARCHIVO CON PUNTOS
 puntos = np.array([])
@@ -19,7 +16,7 @@ for i in f:
   x = i.split(",")[0]
   y = i.split(",")[1]
   puntos=np.append(puntos, Leaf(float(x),float(y)))
-puntos = puntos[:10]
+puntos = puntos[:1000]
 print(len(puntos))
 
 #####################################CLASE TREE
@@ -62,8 +59,6 @@ class Tree:
               closestBranch = None
               break
             elif d < record:
-              grado = math.degrees(math.atan2(leaf.pos[1]-branch.pos[1],leaf.pos[0]-branch.pos[0])) % 360
-              if((grado > angulo_min) & (grado < angulo_max)):
                 closestBranch = branch
                 record = d
         if closestBranch != None:
@@ -94,19 +89,19 @@ class Tree:
     y2 =np.array([])
     lines = []
     for i in range(1,len(self.branches)):
-      if self.branches[i].parent != None:
+      if self.branches[i].parent is not None:
         p = [(self.branches[i].pos[0], self.branches[i].pos[1]), (self.branches[i].parent.pos[0], self.branches[i].parent.pos[1])]
         lines.append(p)
         x1=np.append(x1,self.branches[i].pos[0])
         y1=np.append(y1,self.branches[i].pos[1])
         x1=np.append(x1,self.branches[i].parent.pos[0])
         y1=np.append(y1,self.branches[i].parent.pos[1])
-    plt.scatter(x1, y1)
-    lc = mc.LineCollection(lines, colors='red', linewidths=1)
-    ax.add_collection(lc)
-    plt.grid(True)
+    plt.scatter(x1, y1, color='black', s=0.2)
+    ax.set_axis_off()
     plt.tight_layout()
-    plt.scatter(fx,fy)
+    lc = mc.LineCollection(lines, colors='#900040', linewidths=1)
+    ax.add_collection(lc)
+    plt.scatter(fx,fy, color='grey', s=0.2)
     plt.show()
 
 #####################################GROW + SHOW

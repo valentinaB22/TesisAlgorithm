@@ -18,13 +18,13 @@ mindis = 5
 apertura_max = 90.0
 apertura_min = 30.0
 grosor_max = 30.0
-delta= 3 #coeficiente de variacion de apertura
+delta= 4 #coeficiente de variacion de apertura
 #cant_puntos_inicial = 1000
 sigma = 0.01 # coeficiente de convergencia
 porcentaje_ocupacion=100.0 #el arbol va a crecer hasta ese porcentaje de ocupacion, dependiendo las leaves qe queden.
 cant_converger = 20 #cant de iteraciones iguales para llegar a la convergencia
 svg_utilizado = "leaf.svg"
-porcentaje_sampleo = 25 # porcentaje de puntos de atraccion
+porcentaje_sampleo = 25 #porcentaje de puntos de atraccion
 
 #####################################ARCHIVO CON PUNTOS
 puntos = np.array([])

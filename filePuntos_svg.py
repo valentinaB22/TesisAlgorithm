@@ -52,7 +52,7 @@ def save_svg_with_points(svg_file, points_inside, output_file):
 
 ############################################# Main function
 svg_file = "leaf.svg"
-num_points = 1000
+num_points = 10000
 output_file = "output.svg"  # Specify the output file path
 # Step 1: Parse the SVG and extract contour coordinates
 svg_path = parse_svg(svg_file)

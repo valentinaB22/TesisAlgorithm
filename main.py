@@ -13,17 +13,18 @@ import re
 
 #####################################PARAMETROS
 cont=0
-maxdis = 50
-mindis = 2
+maxdis = 100
+mindis = 5
 apertura_max = 90.0
-apertura_min = 10.0
-grosor_dibujo = 10.0
-delta= 5 #coeficiente de variacion de apertura
-cant_puntos_inicial = 1000
+apertura_min = 30.0
+grosor_max = 30.0
+delta= 3 #coeficiente de variacion de apertura
+#cant_puntos_inicial = 1000
 sigma = 0.01 # coeficiente de convergencia
-porcentaje_ocupacion= 100.0 #el arbol va a crecer hasta ese porcentaje de ocupacion, dependiendo las leaves qe queden.
-cant_converger =3 #cant de iteraciones iguales para llegar a la convergencia
+porcentaje_ocupacion=100.0 #el arbol va a crecer hasta ese porcentaje de ocupacion, dependiendo las leaves qe queden.
+cant_converger = 20 #cant de iteraciones iguales para llegar a la convergencia
 svg_utilizado = "leaf.svg"
+porcentaje_sampleo = 25 # porcentaje de puntos de atraccion
 
 #####################################ARCHIVO CON PUNTOS
 puntos = np.array([])
@@ -32,12 +33,19 @@ for i in f:
   x = i.split(",")[0]
   y = i.split(",")[1]
   puntos=np.append(puntos, Leaf(float(x),float(y)))
-puntos = puntos[:cant_puntos_inicial]
+cant = int(porcentaje_sampleo*len(puntos)/100)
+puntos = puntos[:cant]
+cant_puntos_inicial = len(puntos)
 print(len(puntos))
+
+
+#pos_global = np.array([50,2]) #ejemplo2
+#pos_global = np.array([25,72])
+#pos_global = np.array([70,75]) #star
+#pos_global = np.array([86,270]) #arbolito
 #pos_global =puntos[1].pos
-pos_global = np.array([40,122])
-#dir_global = np.array([460,100])
-#dir_global = puntos[250].pos
+pos_global = np.array([460,820]) #leaf
+#pos_global = np.array([28.7,12]) #triangulo
 #####################################CLASE TREE
 class Tree:
   cont =0
@@ -47,8 +55,7 @@ class Tree:
   def __init__(self):
     self.leaves = puntos.tolist()
     pos = pos_global
-    #dir = dir_global
-    dir = np.array([0, -1])
+    dir = np.array([0,-1])
     root = Branch(None, pos, dir)
     self.branches.append(root)
     current = root
@@ -60,7 +67,9 @@ class Tree:
     while not found:
       for i in range(len(self.leaves)):
         d = (current.pos-self.leaves[i].pos)[0]**2 + (current.pos-self.leaves[i].pos)[1]**2
+        #d = np.linalg.norm(current.pos-self.leaves[i].pos)
         if d < maxdis**2:
+        #if d < maxdis:
           found = True
       if not found:
         branch = current.next()
@@ -105,7 +114,9 @@ class Tree:
           record = maxdis**2
           for branch in self.branches:
             d = (leaf.pos-branch.pos)[0]**2 + (leaf.pos-branch.pos)[1]**2
+            #d = np.linalg.norm(leaf.pos-branch.pos)
             if d < mindis**2:
+            #if d < mindis:
               leaf.reachedM()
               closestBranch = None
               break
@@ -164,12 +175,17 @@ class Tree:
         p = [(self.branches[i].pos[0], self.branches[i].pos[1]),
              (self.branches[i].parent.pos[0], self.branches[i].parent.pos[1])]
         lines.append(p)
-        grosores.append(grosor_dibujo / self.branches[i].get_depth())
+        #grosores.append(grosor_dibujo / self.branches[i].get_depth())
+        grosores.append(self.branches[i].grosor)
+        print("grosores: ", self.branches[i].grosor)
         x1 = np.append(x1, self.branches[i].pos[0])
         y1 = np.append(y1, self.branches[i].pos[1])
         x1 = np.append(x1, self.branches[i].parent.pos[0])
         y1 = np.append(y1, self.branches[i].parent.pos[1])
-    plt.scatter(x1, y1, color='black', s=0.2)
+    plt.scatter(x1, y1, color='#900040', s=0.001)
+    #lc = mc.LineCollection(lines, colors='#900040', linewidths=2, alpha=0.7)
+    grosores= grosores/np.linalg.norm(grosores)*grosor_max
+    print("grosoresnorm:", grosores)
     lc = mc.LineCollection(lines, colors='#900040', linewidths=grosores, alpha=0.7)
     ax.add_collection(lc)
     ax.set_axis_off()

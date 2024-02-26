@@ -15,20 +15,22 @@ import re
 cont=0
 maxdis = 100
 mindis = 5
+len_branch = 5 #revisar
 apertura_max = 90.0
-apertura_min = 30.0
-grosor_max = 30.0
-delta= 4 #coeficiente de variacion de apertura
+apertura_min = 10.0
+grosor_max = 20.0
+delta= 30 #coeficiente de variacion de apertura
 #cant_puntos_inicial = 1000
 sigma = 0.01 # coeficiente de convergencia
 porcentaje_ocupacion=100.0 #el arbol va a crecer hasta ese porcentaje de ocupacion, dependiendo las leaves qe queden.
-cant_converger = 20 #cant de iteraciones iguales para llegar a la convergencia
-svg_utilizado = "leaf.svg"
-porcentaje_sampleo = 25 #porcentaje de puntos de atraccion
+cant_converger = 5 #cant de iteraciones iguales para llegar a la convergencia
+svg_utilizado = "star.svg"
+porcentaje_sampleo = 100 #porcentaje de puntos de atraccion
 
 #####################################ARCHIVO CON PUNTOS
 puntos = np.array([])
-f = open ("file.txt", "r")
+f = open ("file_metricas_star.txt", "r")
+#f = open ("file_star_200.txt", "r")
 for i in f:
   x = i.split(",")[0]
   y = i.split(",")[1]
@@ -38,14 +40,15 @@ puntos = puntos[:cant]
 cant_puntos_inicial = len(puntos)
 print(len(puntos))
 
-
+#pos_global = np.array([50,30]) #ejemplo2-medio
 #pos_global = np.array([50,2]) #ejemplo2
 #pos_global = np.array([25,72])
-#pos_global = np.array([70,75]) #star
+pos_global = np.array([70,75]) #star
 #pos_global = np.array([86,270]) #arbolito
 #pos_global =puntos[1].pos
-pos_global = np.array([460,820]) #leaf
+#pos_global = np.array([460,820]) #leaf
 #pos_global = np.array([28.7,12]) #triangulo
+#pos_global = np.array([28.7,44]) #triangulo base
 #####################################CLASE TREE
 class Tree:
   cont =0
@@ -55,7 +58,7 @@ class Tree:
   def __init__(self):
     self.leaves = puntos.tolist()
     pos = pos_global
-    dir = np.array([0,-1])
+    dir = np.array([0,1])
     root = Branch(None, pos, dir)
     self.branches.append(root)
     current = root
@@ -128,10 +131,10 @@ class Tree:
               rad = math.acos(float(round(c[0], 6)))
               grado = math.degrees(rad)
               #aper= self.fun_apertura_automatico(branch, ocupacion_actual)
-              aper = self.fun_apertura(branch)
-              if (grado < aper):
-                closestBranch = branch
-                record = d
+              #aper = self.fun_apertura(branch)
+              #if (grado < aper):
+              closestBranch = branch
+              record = d
         if closestBranch != None:
           newDir = np.subtract(leaf.pos, closestBranch.pos)
           newDir = newDir / np.linalg.norm(newDir)
@@ -164,10 +167,12 @@ class Tree:
     y1 = np.array([])
     x2 = np.array([])
     y2 = np.array([])
+    plt.scatter(fx, fy, color='#000000', s=1)
+    #plt.scatter(fx, fy, color='red', s=5) #para ver el sampleo
     lines = []
     grosores = []
     # Create a Polygon patch for the shadow
-    shadow_polygon = patches.Polygon(self.contour, closed=True, edgecolor='none', facecolor='#000000',alpha=0.10)
+    shadow_polygon = patches.Polygon(self.contour, closed=True, edgecolor='none', facecolor='#000000', alpha=0.10)
     # Add the shadow polygon to the plot
     ax.add_patch(shadow_polygon)
     for i in range(1, len(self.branches)):
@@ -175,17 +180,18 @@ class Tree:
         p = [(self.branches[i].pos[0], self.branches[i].pos[1]),
              (self.branches[i].parent.pos[0], self.branches[i].parent.pos[1])]
         lines.append(p)
-        #grosores.append(grosor_dibujo / self.branches[i].get_depth())
+        # grosores.append(grosor_dibujo / self.branches[i].get_depth())
         grosores.append(self.branches[i].grosor)
-        print("grosores: ", self.branches[i].grosor)
+        #print("grosores: ", self.branches[i].grosor)
         x1 = np.append(x1, self.branches[i].pos[0])
         y1 = np.append(y1, self.branches[i].pos[1])
         x1 = np.append(x1, self.branches[i].parent.pos[0])
         y1 = np.append(y1, self.branches[i].parent.pos[1])
     plt.scatter(x1, y1, color='#900040', s=0.001)
-    #lc = mc.LineCollection(lines, colors='#900040', linewidths=2, alpha=0.7)
-    grosores= grosores/np.linalg.norm(grosores)*grosor_max
-    print("grosoresnorm:", grosores)
+    # lc = mc.LineCollection(lines, colors='#900040', linewidths=2, alpha=0.7)
+    print(grosores)
+    grosores = grosores / np.linalg.norm(grosores) * grosor_max
+    #print("grosoresnorm:", grosores)
     lc = mc.LineCollection(lines, colors='#900040', linewidths=grosores, alpha=0.7)
     ax.add_collection(lc)
     ax.set_axis_off()

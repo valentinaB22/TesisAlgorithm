@@ -13,7 +13,7 @@ class Branch:
     self.pos = pos
     self.parent = parent
     self.dir = dir
-    self.origDir = self.dir#.copy()
+    self.origDir = self.dir
     self.count = 0
     self.len = 5 ####################LONGITUD DE LA RAMA
     if parent:
